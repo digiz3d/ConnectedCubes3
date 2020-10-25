@@ -52,18 +52,14 @@ namespace RetardedNetworking
           {
             NetworkStream stream = client.NetworkStream;
 
-            Debug.Log("server: serverClientId " + client.MessagesToSend.Count);
-
             if (client.MessagesToSend.Count > 0 && stream.CanWrite)
             {
-              Debug.Log("server can write");
               byte[] bytes = client.MessagesToSend.Dequeue().GetBytes();
               stream.Write(bytes, 0, bytes.Length);
             }
 
             if (stream.CanRead && stream.DataAvailable)
             {
-              Debug.Log("server can read");
               NetworkMessage message = NetworkMessage.ReadFrom(stream);
               if (message.SenderClientId != client.Id)
               {
@@ -75,7 +71,7 @@ namespace RetardedNetworking
               }
               else
               {
-                NetworkManager.Singleton.networkReceivedMessages.Enqueue(message);
+                NetworkManager.Singleton.serverReceivedMessages.Enqueue(message);
               }
             }
           }

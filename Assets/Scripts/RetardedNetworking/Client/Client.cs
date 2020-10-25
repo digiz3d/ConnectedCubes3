@@ -10,18 +10,12 @@ namespace RetardedNetworking
   {
     private Thread _clientThread;
     private bool _stopping = false;
-    public int MyId { get; set; }
+    public byte MyId { get; set; }
 
     private Queue<NetworkMessage> _messagesToSend = new Queue<NetworkMessage>();
 
-    private delegate void MessageHandler(NetworkMessage msg);
-
-    private Dictionary<NetworkMessageType, MessageHandler> _messagesHandlers;
-
     public Client(string serverIp, int serverPort)
     {
-      InitializeMessageHandlers();
-
       _clientThread = new Thread(() =>
       {
         _stopping = false;
@@ -43,16 +37,14 @@ namespace RetardedNetworking
         {
           if (_messagesToSend.Count > 0 && stream.CanWrite)
           {
-            Debug.Log("client can write");
             byte[] bytes = _messagesToSend.Dequeue().GetBytes();
             stream.Write(bytes, 0, bytes.Length);
           }
 
           if (stream.CanRead && stream.DataAvailable)
           {
-            Debug.Log("client can read");
             NetworkMessage message = NetworkMessage.ReadFrom(stream);
-            NetworkManager.Singleton.networkReceivedMessages.Enqueue(message);
+            NetworkManager.Singleton.clientReceivedMessages.Enqueue(message);
           }
 
           Debug.Log("[Client Thread] I'm alive !");
@@ -78,22 +70,11 @@ namespace RetardedNetworking
       _stopping = false;
     }
 
-    public void SendMessageToServer(NetworkMessage msg)
+    public void SendMessageToServer(NetworkMessageType type, byte[] data)
     {
-      _messagesToSend.Enqueue(msg);
+      _messagesToSend.Enqueue(new NetworkMessage(type, MyId, data));
     }
 
-    private void InitializeMessageHandlers()
-    {
-      _messagesHandlers = new Dictionary<NetworkMessageType, MessageHandler>() {
-        {
-          NetworkMessageType.GIVE_CLIENT_ID,
-          (msg) =>
-          {
-            MyId=msg.Stream.ReadByte();
-          }
-        }
-      };
-    }
+
   }
 }

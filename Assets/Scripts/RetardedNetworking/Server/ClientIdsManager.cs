@@ -15,7 +15,7 @@ namespace RetardedNetworking
       if (ids.Count >= MAX_PLAYERS)
         throw new Exception("Maximum clients number reached.");
 
-      for (byte i = 0; i < MAX_PLAYERS; i++)
+      for (byte i = 1; i < MAX_PLAYERS; i++)
       {
         if (!ids.Contains(i))
         {

@@ -53,8 +53,8 @@ namespace RetardedNetworking
 
   public enum NetworkMessageType : byte
   {
+    THANKS = 1,
     GIVE_CLIENT_ID,
-    RPC,
-    Ping,
+    RECEIVED_CLIENT_ID,
   }
 }

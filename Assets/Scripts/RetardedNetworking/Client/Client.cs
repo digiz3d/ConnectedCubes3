@@ -1,80 +1,75 @@
 ﻿using UnityEngine;
-using System;
 using System.Net.Sockets;
 using System.Threading;
 using System.Collections.Generic;
 
 namespace RetardedNetworking
 {
-  public class Client
-  {
-    private Thread _clientThread;
-    private bool _stopping = false;
-    public byte MyId { get; set; }
-
-    private Queue<NetworkMessage> _messagesToSend = new Queue<NetworkMessage>();
-
-    public Client(string serverIp, int serverPort)
+    public class Client
     {
-      _clientThread = new Thread(() =>
-      {
-        _stopping = false;
+        private Thread _clientThread;
+        private bool _stopping = false;
+        public byte Id { get; set; }
 
-        Debug.Log($"[Client Thread] Connecting to {serverIp}:{serverPort}");
+        private Queue<Packet> _packetsToSend = new Queue<Packet>();
 
-        TcpClient tcpClient = new TcpClient();
-
-        if (!tcpClient.ConnectAsync(serverIp, serverPort).Wait(1000))
+        public Client(string serverIp, int serverPort)
         {
-          Debug.Log("[Client Thread] Could not connect");
-          tcpClient.Close();
-          return;
+            _clientThread = new Thread(() =>
+            {
+                _stopping = false;
+
+                Debug.Log($"[Client Thread] Connecting to {serverIp}:{serverPort}");
+
+                TcpClient tcpClient = new TcpClient();
+
+                if (!tcpClient.ConnectAsync(serverIp, serverPort).Wait(1000))
+                {
+                    Debug.Log("[Client Thread] Could not connect");
+                    tcpClient.Close();
+                    return;
+                }
+
+                NetworkStream stream = tcpClient.GetStream();
+
+                while (!_stopping)
+                {
+                    if (_packetsToSend.Count > 0 && stream.CanWrite)
+                    {
+                        _packetsToSend.Dequeue().SendToStream(stream);
+                    }
+
+                    if (stream.CanRead && stream.DataAvailable)
+                    {
+                        Packet packet = Packet.ReadFrom(stream);
+                        NetworkManager.Singleton.ClientReceivePacket(packet);
+                    }
+
+                    Thread.Sleep(7);
+                }
+
+                tcpClient.Close();
+
+                _stopping = false;
+            })
+            {
+                IsBackground = true,
+            };
+
+            _clientThread.Start();
         }
 
-        NetworkStream stream = tcpClient.GetStream();
-
-        while (!_stopping)
+        public void Stop()
         {
-          if (_messagesToSend.Count > 0 && stream.CanWrite)
-          {
-            byte[] bytes = _messagesToSend.Dequeue().GetBytes();
-            stream.Write(bytes, 0, bytes.Length);
-          }
-
-          if (stream.CanRead && stream.DataAvailable)
-          {
-            NetworkMessage message = NetworkMessage.ReadFrom(stream);
-            NetworkManager.Singleton.clientReceivedMessages.Enqueue(message);
-          }
-
-          Debug.Log("[Client Thread] I'm alive !");
-          Thread.Sleep(1000);
+            _stopping = true;
+            _clientThread.Join();
+            _clientThread = null;
+            _stopping = false;
         }
 
-        tcpClient.Close();
-
-        _stopping = false;
-      })
-      {
-        IsBackground = true,
-      };
-
-      _clientThread.Start();
+        public void SendPacketToServer(PacketType type, byte[] data)
+        {
+            _packetsToSend.Enqueue(new Packet(type, Id, data));
+        }
     }
-
-    public void Stop()
-    {
-      _stopping = true;
-      _clientThread.Join();
-      _clientThread = null;
-      _stopping = false;
-    }
-
-    public void SendMessageToServer(NetworkMessageType type, byte[] data)
-    {
-      _messagesToSend.Enqueue(new NetworkMessage(type, MyId, data));
-    }
-
-
-  }
 }

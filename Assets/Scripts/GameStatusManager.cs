@@ -4,6 +4,7 @@ using RetardedNetworking;
 
 public class GameStatusManager : MonoBehaviour
 {
+  public Transform spawnPoint;
   public Text textServer;
   public Text textClient;
   public Text textHost;

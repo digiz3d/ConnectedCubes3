@@ -152,7 +152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e9c17f220e48407dac576d321db4d0e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnPoint: {fileID: 0}
+  spawnPoint: {fileID: 1203356329}
   textServer: {fileID: 1182365308}
   textClient: {fileID: 1894480537}
   textHost: {fileID: 1357850894}

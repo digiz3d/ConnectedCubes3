@@ -37,7 +37,7 @@ public class GameStatusManager : MonoBehaviour
         textClient.text = "IsClient = " + (n.IsClient);
         textClient.color = n.IsClient ? Color.green : Color.red;
         textHost.text = "IsHost = " + (n.IsServer && n.IsClient);
-        textHost.color = (n.IsServer && n.IsClient) ? Color.green : Color.red;
+        textHost.color = n.IsHost ? Color.green : Color.red;
     }
 
     private void ToggleServer()
@@ -47,13 +47,10 @@ public class GameStatusManager : MonoBehaviour
         if (n == null) return;
 
         if (n.IsServer)
-        {
             n.StopServer();
-        }
         else
-        {
             n.StartServer();
-        }
+
     }
 
     private void ToggleClient()
@@ -63,12 +60,19 @@ public class GameStatusManager : MonoBehaviour
         if (n == null) return;
 
         if (n.IsClient)
-        {
-            n.DisconnectFromServer();
-        }
+            n.StopClient();
         else
-        {
-            n.ConnectToServer();
-        }
+            n.StartClient();
+    }
+
+    public void ToggleHost()
+    {
+        NetworkManager n = NetworkManager.Singleton;
+        if (n == null) return;
+
+        if (n.IsHost)
+            n.StopHost();
+        else
+            n.StartHost();
     }
 }

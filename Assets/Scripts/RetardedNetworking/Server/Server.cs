@@ -106,5 +106,14 @@ namespace RetardedNetworking
         {
             client.packetsToSend.Enqueue(new Packet(type, client.Id, data));
         }
+
+        public void SendPacketToAllClients(PacketType type, byte[] data)
+        {
+            foreach (ServerClient client in _clientsList)
+            {
+                client.packetsToSend.Enqueue(new Packet(type, client.Id, new byte[0]));
+            }
+        }
+
     }
 }

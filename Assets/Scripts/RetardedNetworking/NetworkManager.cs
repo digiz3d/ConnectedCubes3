@@ -6,19 +6,22 @@ namespace RetardedNetworking
     public class NetworkManager : MonoBehaviour
     {
         public static NetworkManager Singleton { get; internal set; }
-        private delegate void PacketHandler(Packet msg);
-
+        private delegate void PacketHandler(Packet pck, Server server, Client client);
 
         public bool IsClient { get; internal set; }
-        private Client client;
+        private Client _client;
         private Queue<Packet> _clientReceivedPackets = new Queue<Packet>();
         private Dictionary<PacketType, PacketHandler> _clientPacketHandlers = new Dictionary<PacketType, PacketHandler>();
 
 
         public bool IsServer { get; internal set; }
-        private Server server;
+        private Server _server;
         private Queue<Packet> _serverReceivedpackets = new Queue<Packet>();
         private Dictionary<PacketType, PacketHandler> _serverPacketHandlers = new Dictionary<PacketType, PacketHandler>();
+
+        public bool IsHost { get; internal set; }
+
+        private Dictionary<int, GameObject> _spawnedGameObject;
 
         private void Update()
         {
@@ -28,7 +31,7 @@ namespace RetardedNetworking
                     Packet msg = _clientReceivedPackets.Dequeue();
                     if (_clientPacketHandlers.ContainsKey(msg.Type))
                     {
-                        _clientPacketHandlers[msg.Type](msg);
+                        _clientPacketHandlers[msg.Type](msg, _server, _client);
                     }
                     else
                     {
@@ -43,7 +46,7 @@ namespace RetardedNetworking
 
                     if (_serverPacketHandlers.ContainsKey(msg.Type))
                     {
-                        _serverPacketHandlers[msg.Type](msg);
+                        _serverPacketHandlers[msg.Type](msg, _server, _client);
                     }
                     else
                     {
@@ -76,11 +79,11 @@ namespace RetardedNetworking
 
         public void StartServer()
         {
-            if (IsClient || IsServer) return;
+            if (IsHost || IsClient || IsServer) return;
 
             InitializePacketHandlers();
             IsServer = true;
-            server = new Server(27015);
+            _server = new Server(27015);
 
         }
 
@@ -89,25 +92,49 @@ namespace RetardedNetworking
             if (!IsServer) return;
 
             IsServer = false;
-            server.Stop();
+            _server.Stop();
+            _server = null;
         }
 
-        public void ConnectToServer()
+        public void StartClient()
         {
-            if (IsClient) return;
+            if (IsHost || IsClient || IsServer) return;
 
             InitializePacketHandlers();
             IsClient = true;
-            client = new Client("127.0.0.1", 27015);
+            _client = new Client("127.0.0.1", 27015);
         }
 
-        public void DisconnectFromServer()
+        public void StopClient()
         {
             if (!IsClient) return;
             IsClient = false;
 
-            client.Stop();
+            _client.Stop();
+            _client = null;
         }
+
+        public void StartHost()
+        {
+            if (IsHost || IsClient || IsServer) return;
+
+            InitializePacketHandlers();
+            IsHost = true;
+            _server = new Server(27015);
+            _client = new Client("127.0.0.1", 27015);
+        }
+
+        public void StopHost()
+        {
+            if (!IsHost) return;
+            IsHost = false;
+
+            _client.Stop();
+            _client = null;
+            _server.Stop();
+            _server = null;
+        }
+
 
         public void ClientReceivePacket(Packet msg)
         {
@@ -121,31 +148,31 @@ namespace RetardedNetworking
 
         private void InitializePacketHandlers()
         {
-
             if (_clientPacketHandlers.Count == 0)
             {
                 _clientPacketHandlers = new Dictionary<PacketType, PacketHandler>() {
-                    {
-                    PacketType.GIVE_CLIENT_ID,
-                    (msg) =>
-                    {
-                    client.Id = (byte)msg.Stream.ReadByte();
-                    Debug.Log($"[NetworkManager:client] The server send me my id = {client.Id}");
-                    client.SendPacketToServer(PacketType.THANKS, new byte[0]);
-                    }
-                    }
-                    };
+                    { PacketType.GIVE_CLIENT_ID, ClientHandler.GetIdFromServer }
+                 };
             }
 
             if (_serverPacketHandlers.Count == 0)
             {
                 _serverPacketHandlers = new Dictionary<PacketType, PacketHandler>(){
-                    {
-                    PacketType.THANKS, msg => {
-                    Debug.Log($"[NetworkManager:server] The client {msg.bytes[1]} said thanks.");
-                    }
-                    }
-                    };
+                    { PacketType.THANKS, ServerHandler.ClientSaidThanks }
+                };
+            }
+        }
+
+        private void SpawnGameObject(GameObject prefab, Transform spawnPoint)
+        {
+            GameObject go = Instantiate(prefab, spawnPoint);
+            int objectId = ObjectIdsManager.GetAvailableId();
+            _spawnedGameObject.Add(objectId, go);
+
+            if (IsHost || IsServer)
+            {
+                //go.GetComponent<NetworkedGameObject>();
+                //_server.SendPacketToAllClients();
             }
         }
     }

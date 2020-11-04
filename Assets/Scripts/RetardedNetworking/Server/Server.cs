@@ -12,6 +12,8 @@ namespace RetardedNetworking
         private List<ServerClient> _clientsList = new List<ServerClient>();
         private Thread _serverThread;
         private bool _stopping = false;
+        public delegate void OnServerReadyCallback();
+        public OnServerReadyCallback onServerReady;
 
         public Server(int port)
         {
@@ -23,13 +25,14 @@ namespace RetardedNetworking
                 TcpListener listener = new TcpListener(IPAddress.Any, port);
 
                 listener.Start();
-
+                onServerReady?.Invoke();
                 while (!_stopping)
                 {
                     while (listener.Pending())
                     {
                         Debug.Log("[Server Thread] Accepting new client.");
                         TcpClient tcpListener = listener.AcceptTcpClient();
+                        
                         try
                         {
                             byte newClientId = ClientIdsManager.GetAvailableId();
@@ -114,6 +117,5 @@ namespace RetardedNetworking
                 client.packetsToSend.Enqueue(new Packet(type, client.Id, new byte[0]));
             }
         }
-
     }
 }

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace RetardedNetworking
 {
@@ -6,7 +7,9 @@ namespace RetardedNetworking
     {
         public static void ClientSaidThanks(Packet pck, Server server, Client client)
         {
-            Debug.Log($"[NetworkManager:server] The client {pck.bytes[1]} said thanks.");
+            Debug.Log($"[NetworkManager:server] The client {pck.SenderClientId} said thanks.");
+            //byte[] playerId = BitConverter.GetBytes();
+            //server.SendPacketToAllClients(PacketType.SPAWN_PLAYER);
         }
     }
 }

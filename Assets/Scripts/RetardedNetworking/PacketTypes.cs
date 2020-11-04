@@ -4,5 +4,6 @@
     {
         GIVE_CLIENT_ID = 0,
         THANKS,
+        SPAWN_PLAYER
     }
 }

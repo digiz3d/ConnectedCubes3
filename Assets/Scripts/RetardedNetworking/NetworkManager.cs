@@ -5,6 +5,9 @@ namespace RetardedNetworking
 {
     public class NetworkManager : MonoBehaviour
     {
+        public GameObject playerPrefab;
+        public GameObject puppetPrefab;
+
         public static NetworkManager Singleton { get; internal set; }
         private delegate void PacketHandler(Packet pck, Server server, Client client);
 
@@ -22,6 +25,7 @@ namespace RetardedNetworking
         public bool IsHost { get; internal set; }
 
         private Dictionary<int, GameObject> _spawnedGameObject;
+        internal bool IsStarted => IsClient || IsHost || IsServer;
 
         private void Update()
         {
@@ -79,7 +83,7 @@ namespace RetardedNetworking
 
         public void StartServer()
         {
-            if (IsHost || IsClient || IsServer) return;
+            if (IsStarted) return;
 
             InitializePacketHandlers();
             IsServer = true;
@@ -98,7 +102,7 @@ namespace RetardedNetworking
 
         public void StartClient()
         {
-            if (IsHost || IsClient || IsServer) return;
+            if (IsStarted) return;
 
             InitializePacketHandlers();
             IsClient = true;
@@ -116,12 +120,17 @@ namespace RetardedNetworking
 
         public void StartHost()
         {
-            if (IsHost || IsClient || IsServer) return;
+            if (IsStarted) return;
 
             InitializePacketHandlers();
             IsHost = true;
-            _server = new Server(27015);
-            _client = new Client("127.0.0.1", 27015);
+            _server = new Server(27015)
+            {
+                onServerReady = () =>
+                {
+                    _client = new Client("127.0.0.1", 27015);
+                }
+            };
         }
 
         public void StopHost()
@@ -148,19 +157,12 @@ namespace RetardedNetworking
 
         private void InitializePacketHandlers()
         {
-            if (_clientPacketHandlers.Count == 0)
-            {
-                _clientPacketHandlers = new Dictionary<PacketType, PacketHandler>() {
-                    { PacketType.GIVE_CLIENT_ID, ClientHandler.GetIdFromServer }
-                 };
-            }
-
-            if (_serverPacketHandlers.Count == 0)
-            {
-                _serverPacketHandlers = new Dictionary<PacketType, PacketHandler>(){
-                    { PacketType.THANKS, ServerHandler.ClientSaidThanks }
-                };
-            }
+            _clientPacketHandlers = new Dictionary<PacketType, PacketHandler>() {
+                { PacketType.GIVE_CLIENT_ID, ClientHandler.ServerGaveMyId }
+            };
+            _serverPacketHandlers = new Dictionary<PacketType, PacketHandler>(){
+                { PacketType.THANKS, ServerHandler.ClientSaidThanks }
+            };
         }
 
         private void SpawnGameObject(GameObject prefab, Transform spawnPoint)

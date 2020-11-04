@@ -29,6 +29,9 @@ public class GameStatusManager : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.C))
             ToggleClient();
 
+        if (Input.GetKeyUp(KeyCode.H))
+            ToggleHost();
+
         NetworkManager n = NetworkManager.Singleton;
         if (n == null) return;
 
@@ -43,20 +46,17 @@ public class GameStatusManager : MonoBehaviour
     private void ToggleServer()
     {
         NetworkManager n = NetworkManager.Singleton;
-
         if (n == null) return;
 
         if (n.IsServer)
             n.StopServer();
         else
             n.StartServer();
-
     }
 
     private void ToggleClient()
     {
         NetworkManager n = NetworkManager.Singleton;
-
         if (n == null) return;
 
         if (n.IsClient)

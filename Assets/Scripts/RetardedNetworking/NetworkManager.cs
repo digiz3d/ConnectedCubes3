@@ -39,7 +39,7 @@ namespace RetardedNetworking
                     }
                     else
                     {
-                        Debug.Log($"[NetworkManager:client] Couldn't handle msg {msg.bytes[0]}");
+                        Debug.Log($"[NetworkManager:client] Couldn't handle msg {msg.Type}");
                     }
                 }
 
@@ -54,7 +54,7 @@ namespace RetardedNetworking
                     }
                     else
                     {
-                        Debug.Log($"[NetworkManager:server] Couldn't handle msg {msg.bytes[0]}");
+                        Debug.Log($"[NetworkManager:server] Couldn't handle msg {msg.Type}");
                     }
                 }
         }
@@ -158,7 +158,7 @@ namespace RetardedNetworking
         private void InitializePacketHandlers()
         {
             _clientPacketHandlers = new Dictionary<PacketType, PacketHandler>() {
-                { PacketType.GIVE_CLIENT_ID, ClientHandler.ServerGaveMyId }
+                { PacketType.GIVE_CLIENT_ID, ClientHandler.GetMyClientId }
             };
             _serverPacketHandlers = new Dictionary<PacketType, PacketHandler>(){
                 { PacketType.THANKS, ServerHandler.ClientSaidThanks }

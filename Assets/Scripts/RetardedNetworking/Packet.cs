@@ -8,7 +8,7 @@ namespace RetardedNetworking
 {
     public class Packet
     {
-        // Network packet id, client id, packet's data portion length
+        // Network packet id, client id, packet's data portion length (1+1+4=6)
         private const byte headerSize = sizeof(byte) + sizeof(byte) + sizeof(int);
         public PacketType Type { private set; get; }
         public byte SenderClientId { private set; get; }
@@ -38,6 +38,7 @@ namespace RetardedNetworking
             SenderClientId = senderId;
             buffer.Add(senderId);
             buffer.AddRange(data);
+            readPos = 2;
         }
 
         public void Write(byte data)
@@ -59,6 +60,17 @@ namespace RetardedNetworking
         {
             byte[] val = buffer.GetRange(readPos, quantity).ToArray();
             readPos += val.Length;
+            return val;
+        }
+
+        public void Write(bool data)
+        {
+            buffer.AddRange(BitConverter.GetBytes(data));
+        }
+        public bool ReadBool()
+        {
+            bool val = BitConverter.ToBoolean(buffer.GetRange(readPos, sizeof(bool)).ToArray(), 0);
+            readPos += sizeof(bool);
             return val;
         }
         public void Write(short data)
@@ -99,13 +111,13 @@ namespace RetardedNetworking
 
         public void Write(string data)
         {
-            ushort len = (ushort)data.Length;
+            short len = (short)data.Length;
             Write(len);
             Write(Encoding.UTF8.GetBytes(data));
         }
         public string ReadString()
         {
-            ushort len = (ushort)ReadShort();
+            short len = ReadShort();
             byte[] bytes = ReadBytes(len);
             return Encoding.UTF8.GetString(bytes);
         }
@@ -155,7 +167,6 @@ namespace RetardedNetworking
         public void SendToStream(NetworkStream stream)
         {
             int len = buffer.Count;
-            buffer.RemoveRange(2,sizeof(int));
             buffer.InsertRange(2, BitConverter.GetBytes(len));
             byte[] bytes = buffer.ToArray();
             stream.Write(bytes, 0, bytes.Length);

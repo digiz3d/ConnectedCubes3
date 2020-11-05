@@ -38,7 +38,7 @@ namespace RetardedNetworking
                             byte newClientId = ClientIdsManager.GetAvailableId();
                             ServerClient client = new ServerClient(newClientId, tcpListener);
                             _clientsList.Add(client);
-                            SendPacketToClient(PacketType.GIVE_CLIENT_ID, client, new byte[1] { newClientId });
+                            SendPacketToClient(PacketType.GIVE_CLIENT_ID, client, new byte[] { newClientId });
                         }
                         catch (Exception e)
                         {
@@ -107,14 +107,14 @@ namespace RetardedNetworking
         }
         public void SendPacketToClient(PacketType type, ServerClient client, byte[] data)
         {
-            client.packetsToSend.Enqueue(new Packet(type, client.Id, data));
+            client.packetsToSend.Enqueue(new Packet(type, 0, data));
         }
 
         public void SendPacketToAllClients(PacketType type, byte[] data)
         {
             foreach (ServerClient client in _clientsList)
             {
-                client.packetsToSend.Enqueue(new Packet(type, client.Id, new byte[0]));
+                client.packetsToSend.Enqueue(new Packet(type, client.Id, data));
             }
         }
     }

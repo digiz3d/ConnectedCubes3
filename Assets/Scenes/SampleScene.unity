@@ -152,6 +152,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e9c17f220e48407dac576d321db4d0e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerPrefab: {fileID: 1101880828883344920, guid: 7bc9631035d5244039ef4a3140143cec, type: 3}
+  puppetPrefab: {fileID: 1101880828883344920, guid: 485c4651edc83bd44a3206d607d998a2, type: 3}
   spawnPoint: {fileID: 1203356329}
   textServer: {fileID: 1182365308}
   textClient: {fileID: 1894480537}
@@ -523,8 +525,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98cd6e4a1c64c42b6ba6ba98d8767ae4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerPrefab: {fileID: 1101880828883344920, guid: 7bc9631035d5244039ef4a3140143cec, type: 3}
-  puppetPrefab: {fileID: 1101880828883344920, guid: 485c4651edc83bd44a3206d607d998a2, type: 3}
+  gameStatusManager: {fileID: 266873412}
 --- !u!4 &1330460260
 Transform:
   m_ObjectHideFlags: 0

@@ -5,11 +5,10 @@ namespace RetardedNetworking
 {
     public class NetworkManager : MonoBehaviour
     {
-        public GameObject playerPrefab;
-        public GameObject puppetPrefab;
+        public GameStatusManager gameStatusManager;
 
         public static NetworkManager Singleton { get; internal set; }
-        private delegate void PacketHandler(Packet pck, Server server, Client client);
+        private delegate void PacketHandler(Packet pck, Server server, Client client, NetworkManager manager);
 
         public bool IsClient { get; internal set; }
         private Client _client;
@@ -24,8 +23,9 @@ namespace RetardedNetworking
 
         public bool IsHost { get; internal set; }
 
-        private Dictionary<int, GameObject> _spawnedGameObject;
-        internal bool IsStarted => IsClient || IsHost || IsServer;
+        private Dictionary<int, GameObject> _spawnedPlayers=new Dictionary<int, GameObject>();
+        private bool IsStarted => IsClient || IsHost || IsServer;
+
 
         private void Update()
         {
@@ -35,7 +35,7 @@ namespace RetardedNetworking
                     Packet msg = _clientReceivedPackets.Dequeue();
                     if (_clientPacketHandlers.ContainsKey(msg.Type))
                     {
-                        _clientPacketHandlers[msg.Type](msg, _server, _client);
+                        _clientPacketHandlers[msg.Type](msg, _server, _client, this);
                     }
                     else
                     {
@@ -50,7 +50,7 @@ namespace RetardedNetworking
 
                     if (_serverPacketHandlers.ContainsKey(msg.Type))
                     {
-                        _serverPacketHandlers[msg.Type](msg, _server, _client);
+                        _serverPacketHandlers[msg.Type](msg, _server, _client, this);
                     }
                     else
                     {
@@ -165,11 +165,11 @@ namespace RetardedNetworking
             };
         }
 
-        private void SpawnGameObject(GameObject prefab, Transform spawnPoint)
+        public void SpawnPlayer()
         {
-            GameObject go = Instantiate(prefab, spawnPoint);
+            GameObject go = Instantiate(gameStatusManager.playerPrefab, gameStatusManager.spawnPoint);
             int objectId = ObjectIdsManager.GetAvailableId();
-            _spawnedGameObject.Add(objectId, go);
+            _spawnedPlayers.Add(objectId, go);
 
             if (IsHost || IsServer)
             {

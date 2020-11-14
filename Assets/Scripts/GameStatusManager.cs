@@ -4,6 +4,8 @@ using RetardedNetworking;
 
 public class GameStatusManager : MonoBehaviour
 {
+    public GameObject playerPrefab;
+    public GameObject puppetPrefab;
     public Transform spawnPoint;
     public Text textServer;
     public Text textClient;
